@@ -6,8 +6,11 @@ import {sanitizeHtml} from '@/utils/security'
 const Reviews = () => {
   const [reviews, setReviews] = useState<Review[]>([])
   const [loading, setLoading] = useState(true)
+  const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
+    setIsClient(true)
+
     const fetchReviews = async () => {
       try {
         const data = await getReviews()
@@ -39,7 +42,9 @@ const Reviews = () => {
           >
             <div
               dangerouslySetInnerHTML={{
-                __html: sanitizeHtml(review.text),
+                __html: isClient
+                  ? sanitizeHtml(review.text)
+                  : review.text,
               }}
             />
           </div>

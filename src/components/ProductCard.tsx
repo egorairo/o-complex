@@ -59,11 +59,14 @@ const ProductCard = ({
 
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
-      <Image
-        src={product.image_url}
-        alt={product.title}
-        className="w-full h-48 object-cover"
-      />
+      <div className="relative w-full h-48">
+        <Image
+          src={product.image_url}
+          alt={product.title}
+          fill
+          className="object-cover"
+        />
+      </div>
       <div className="p-4">
         <h3 className="text-lg font-semibold mb-2 truncate">
           {product.title}

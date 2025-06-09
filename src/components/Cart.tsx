@@ -2,7 +2,6 @@ import {useState} from 'react'
 import {CartItem, Product} from '@/types'
 import {submitOrder} from '@/services/api'
 import numeral from 'numeral'
-import InputMask from 'react-input-mask'
 import {isValidPhoneNumber, validateInput} from '@/utils/security'
 
 interface CartProps {
@@ -20,6 +19,25 @@ const Cart = ({cart, products, setShowSuccessModal}: CartProps) => {
     const product = products.find((p) => p.id === item.id)
     return sum + (product ? product.price * item.quantity : 0)
   }, 0)
+
+  const formatPhoneNumber = (value: string): string => {
+    const cleaned = value.replace(/\D/g, '')
+    const match = cleaned.match(
+      /^7?(\d{0,3})(\d{0,3})(\d{0,2})(\d{0,2})$/
+    )
+
+    if (!match) return value
+
+    const [, area, first, second, third] = match
+
+    let formatted = '+7'
+    if (area) formatted += ` (${area}`
+    if (first) formatted += `) ${first}`
+    if (second) formatted += `-${second}`
+    if (third) formatted += `-${third}`
+
+    return formatted
+  }
 
   const validatePhone = (phoneValue: string): string => {
     const cleanValue = validateInput(phoneValue, 20)
@@ -44,10 +62,15 @@ const Cart = ({cart, products, setShowSuccessModal}: CartProps) => {
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const value = e.target.value
-    setPhone(value)
+    const cleaned = value.replace(/\D/g, '')
 
-    const error = validatePhone(value)
-    setPhoneError(error)
+    if (cleaned.length <= 11) {
+      const formatted = formatPhoneNumber(cleaned)
+      setPhone(formatted)
+
+      const error = validatePhone(formatted)
+      setPhoneError(error)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -126,27 +149,18 @@ const Cart = ({cart, products, setShowSuccessModal}: CartProps) => {
           <label htmlFor="phone" className="block mb-1 font-medium">
             Номер телефона
           </label>
-          <InputMask
-            mask="+7 (999) 999-99-99"
+          <input
+            type="tel"
+            id="phone"
             value={phone}
             onChange={handlePhoneChange}
             placeholder="+7 (___) ___-__-__"
-          >
-            {(
-              inputProps: React.InputHTMLAttributes<HTMLInputElement>
-            ) => (
-              <input
-                {...inputProps}
-                type="tel"
-                id="phone"
-                className={`w-full p-3 border rounded-lg transition-colors ${
-                  phoneError
-                    ? 'border-red-500 focus:border-red-500'
-                    : 'border-gray-300 focus:border-blue-500'
-                } focus:outline-none focus:ring-2 focus:ring-blue-200`}
-              />
-            )}
-          </InputMask>
+            className={`w-full p-3 border rounded-lg transition-colors ${
+              phoneError
+                ? 'border-red-500 focus:border-red-500'
+                : 'border-gray-300 focus:border-blue-500'
+            } focus:outline-none focus:ring-2 focus:ring-blue-200`}
+          />
           {phoneError && (
             <p className="text-red-500 text-sm mt-1 flex items-center">
               <svg

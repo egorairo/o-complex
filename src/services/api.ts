@@ -15,6 +15,7 @@ export const getReviews = async (): Promise<Review[]> => {
         'content-type': 'application/json',
       },
     })
+    console.log('response.data', response.data)
     return response.data
   } catch (error) {
     console.error('Ошибка при получении отзывов:', error)

@@ -5,11 +5,16 @@ export const sanitizeHtml = (html: string): string => {
     return html
   }
 
-  return DOMPurify.sanitize(html, {
-    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'span', 'div'],
-    ALLOWED_ATTR: ['class'],
-    FORBID_TAGS: ['script', 'object', 'embed', 'iframe'],
-  })
+  try {
+    return DOMPurify.sanitize(html, {
+      ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'span', 'div'],
+      ALLOWED_ATTR: ['class'],
+      FORBID_TAGS: ['script', 'object', 'embed', 'iframe'],
+    })
+  } catch (error) {
+    console.error('DOMPurify error:', error)
+    return html
+  }
 }
 
 export const validateInput = (
