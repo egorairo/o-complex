@@ -86,7 +86,7 @@ export default function Home() {
       </h1>
 
       <Reviews />
-      <div className="mb-8">
+      <div className="mb-4 md:mb-8 mt-8 md:mt-14">
         <Cart
           cart={cart}
           products={products}

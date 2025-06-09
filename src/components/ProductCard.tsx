@@ -1,6 +1,7 @@
 import {useState, useEffect} from 'react'
 import {Product, CartItem} from '@/types'
 import numeral from 'numeral'
+import Image from 'next/image'
 
 interface ProductCardProps {
   product: Product
@@ -58,7 +59,7 @@ const ProductCard = ({
 
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
-      <img
+      <Image
         src={product.image_url}
         alt={product.title}
         className="w-full h-48 object-cover"

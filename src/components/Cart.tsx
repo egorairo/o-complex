@@ -2,6 +2,8 @@ import {useState} from 'react'
 import {CartItem, Product} from '@/types'
 import {submitOrder} from '@/services/api'
 import numeral from 'numeral'
+import InputMask from 'react-input-mask'
+import {isValidPhoneNumber, validateInput} from '@/utils/security'
 
 interface CartProps {
   cart: CartItem[]
@@ -11,7 +13,7 @@ interface CartProps {
 
 const Cart = ({cart, products, setShowSuccessModal}: CartProps) => {
   const [phone, setPhone] = useState<string>('')
-  const [phoneError, setPhoneError] = useState<boolean>(false)
+  const [phoneError, setPhoneError] = useState<string>('')
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
 
   const totalSum = cart.reduce((sum, item) => {
@@ -19,19 +21,41 @@ const Cart = ({cart, products, setShowSuccessModal}: CartProps) => {
     return sum + (product ? product.price * item.quantity : 0)
   }, 0)
 
+  const validatePhone = (phoneValue: string): string => {
+    const cleanValue = validateInput(phoneValue, 20)
+    const cleanPhone = cleanValue.replace(/\D/g, '')
+
+    if (!cleanPhone) {
+      return 'Введите номер телефона'
+    }
+
+    if (cleanPhone.length !== 11) {
+      return 'Номер должен содержать 11 цифр'
+    }
+
+    if (!isValidPhoneNumber(phoneValue)) {
+      return 'Номер должен начинаться с 7'
+    }
+
+    return ''
+  }
+
   const handlePhoneChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const value = e.target.value.replace(/\D/g, '')
+    const value = e.target.value
     setPhone(value)
-    setPhoneError(false)
+
+    const error = validatePhone(value)
+    setPhoneError(error)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (phone.length !== 11) {
-      setPhoneError(true)
+    const phoneValidationError = validatePhone(phone)
+    if (phoneValidationError) {
+      setPhoneError(phoneValidationError)
       return
     }
 
@@ -41,8 +65,10 @@ const Cart = ({cart, products, setShowSuccessModal}: CartProps) => {
 
     try {
       setIsSubmitting(true)
+      const cleanPhone = phone.replace(/\D/g, '')
+
       const response = await submitOrder({
-        phone,
+        phone: cleanPhone,
         cart,
       })
 
@@ -97,32 +123,54 @@ const Cart = ({cart, products, setShowSuccessModal}: CartProps) => {
 
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
-          <label htmlFor="phone" className="block mb-1">
-            +7 (___) ___ - __ - __
+          <label htmlFor="phone" className="block mb-1 font-medium">
+            Номер телефона
           </label>
-          <input
-            type="tel"
-            id="phone"
+          <InputMask
+            mask="+7 (999) 999-99-99"
             value={phone}
             onChange={handlePhoneChange}
-            placeholder="79XXXXXXXXX"
-            className={`w-full p-2 border rounded ${
-              phoneError ? 'border-red-500' : 'border-gray-300'
-            }`}
-          />
+            placeholder="+7 (___) ___-__-__"
+          >
+            {(
+              inputProps: React.InputHTMLAttributes<HTMLInputElement>
+            ) => (
+              <input
+                {...inputProps}
+                type="tel"
+                id="phone"
+                className={`w-full p-3 border rounded-lg transition-colors ${
+                  phoneError
+                    ? 'border-red-500 focus:border-red-500'
+                    : 'border-gray-300 focus:border-blue-500'
+                } focus:outline-none focus:ring-2 focus:ring-blue-200`}
+              />
+            )}
+          </InputMask>
           {phoneError && (
-            <p className="text-red-500 text-sm mt-1">
-              Введите корректный номер телефона (11 цифр)
+            <p className="text-red-500 text-sm mt-1 flex items-center">
+              <svg
+                className="w-4 h-4 mr-1"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              {phoneError}
             </p>
           )}
         </div>
 
         <button
           type="submit"
-          disabled={isSubmitting || cart.length === 0}
-          className="w-full bg-black text-white py-2 px-4 rounded disabled:bg-gray-400 cursor-pointer"
+          disabled={isSubmitting || cart.length === 0 || !!phoneError}
+          className="w-full bg-black text-white py-3 px-4 rounded-lg disabled:bg-gray-400 cursor-pointer transition-colors hover:bg-gray-800 disabled:hover:bg-gray-400"
         >
-          заказать
+          {isSubmitting ? 'Оформление...' : 'заказать'}
         </button>
       </form>
     </div>

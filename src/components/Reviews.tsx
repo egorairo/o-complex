@@ -1,6 +1,7 @@
 import {useEffect, useState} from 'react'
 import {Review} from '@/types'
 import {getReviews} from '@/services/api'
+import {sanitizeHtml} from '@/utils/security'
 
 const Reviews = () => {
   const [reviews, setReviews] = useState<Review[]>([])
@@ -36,7 +37,11 @@ const Reviews = () => {
             key={review.id}
             className="bg-gray-100 p-6 rounded-lg shadow"
           >
-            <div dangerouslySetInnerHTML={{__html: review.text}} />
+            <div
+              dangerouslySetInnerHTML={{
+                __html: sanitizeHtml(review.text),
+              }}
+            />
           </div>
         ))}
       </div>
